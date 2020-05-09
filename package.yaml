@@ -24,6 +24,16 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+    - aeson
+    - data-has
+    - generic-lens
+    - http-types
+    - lens
+    - mtl
+    - text
+    - wai
+    - warp
 
 executables:
   haskell-in-production-exe:
@@ -35,6 +45,12 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - haskell-in-production
+    - lens
+    - generic-lens
+    - aeson
+    - text
+    - mtl
+    - data-has
 
 tests:
   haskell-in-production-test:

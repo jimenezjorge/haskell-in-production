@@ -6,6 +6,10 @@
 --
 --   Ergo - don't think too hard on what's in this module, it's for
 --   illustration purpoeses.
+
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Web.SimpleHttp
   -- * Functions
   ( run

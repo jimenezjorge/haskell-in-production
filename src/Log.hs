@@ -1,3 +1,21 @@
+{-# LANGUAGE RankNTypes #-}
+{-  • Illegal qualified type: HasCallStack => Text -> m ()
+      Perhaps you intended to use RankNTypes
+    • In the definition of data constructor ‘Logger’
+      In the data type declaration for ‘Logger’
+-}
+{-# LANGUAGE FlexibleContexts #-}
+{-  • Non type-variable argument in the constraint: Has (Logger m) r
+      (Use FlexibleContexts to permit this)
+    • In the instance declaration for ‘Log (ReaderT r m)’
+-}
+{-# LANGUAGE UndecidableInstances #-}
+{-  • The constraint ‘Has (Logger m) r’
+        is no smaller than the instance head ‘Log (ReaderT r m)’
+      (Use UndecidableInstances to permit this)
+    • In the instance declaration for ‘Log (ReaderT r m)’
+-}
+
 module Log
   ( Loggable(..)
   , Log(..)

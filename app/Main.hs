@@ -1,3 +1,42 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-  • Non type-variable argument
+        in the constraint: Has (Persistence m) r
+      (Use FlexibleContexts to permit this)
+    • In the instance declaration for ‘Persist (ReaderT r m)’
+-}
+{-# LANGUAGE UndecidableInstances #-}
+{-  • The constraint ‘Has (Persistence m) r’
+        is no smaller than the instance head ‘Persist (ReaderT r m)’
+      (Use UndecidableInstances to permit this)
+    • In the instance declaration for ‘Persist (ReaderT r m)’
+-}
+
+{-# LANGUAGE
+OverloadedLabels,
+DerivingStrategies,
+RecordWildCards,
+MultiParamTypeClasses,
+DeriveGeneric,
+OverloadedStrings
+#-}
+
+{-# LANGUAGE FlexibleInstances #-}
+{-  • Illegal instance declaration for ‘Persist' m’
+        (All instance types must be of the form (T a1 ... an)
+         where a1 ... an are *distinct type variables*,
+         and each type variable appears at most once in the instance head.
+         Use FlexibleInstances if you want to disable this.)
+    • In the instance declaration for ‘Persist' m’
+-}
+{-# LANGUAGE RecordWildCards #-}
+{-      Illegal `..' in record pattern
+47 |     (\UserRequest{..} -> Right (UserName username, Password password))
+   |       ^^^^^^^^^^^^^^^
+-}
+{-# LANGUAGE ViewPatterns #-}
+{-    Illegal view pattern:  matches "/user" -> Just []
+    Use ViewPatterns to enable view patterns
+-}
 module Main
   ( main
   ) where
@@ -90,4 +129,3 @@ instance Has (Logger m) (Application m) where
 instance Has (Persistence m) (Application m) where
   getter = persistence
   modifier f a = a { persistence = f . persistence $ a }
-

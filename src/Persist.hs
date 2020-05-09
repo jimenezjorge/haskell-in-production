@@ -1,4 +1,17 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-  • Non type-variable argument
+        in the constraint: Has (Persistence m) r
+      (Use FlexibleContexts to permit this)
+    • In the instance declaration for ‘Persist (ReaderT r m)’
+-}
+{-# LANGUAGE UndecidableInstances #-}
+{-  • The constraint ‘Has (Persistence m) r’
+        is no smaller than the instance head ‘Persist (ReaderT r m)’
+      (Use UndecidableInstances to permit this)
+    • In the instance declaration for ‘Persist (ReaderT r m)’
+-}
 {-# LANGUAGE MonoLocalBinds #-}
+
 module Persist
   ( Persist(..)
   , Persistence(..)

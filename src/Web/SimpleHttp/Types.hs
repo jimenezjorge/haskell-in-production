@@ -1,3 +1,7 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Web.SimpleHttp.Types
   -- * Data types
   ( Request(..)
@@ -48,4 +52,3 @@ data Response
     , body :: Text
     }
   deriving stock (Generic)
-
