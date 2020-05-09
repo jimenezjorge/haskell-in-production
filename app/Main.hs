@@ -1,42 +1,7 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-  • Non type-variable argument
-        in the constraint: Has (Persistence m) r
-      (Use FlexibleContexts to permit this)
-    • In the instance declaration for ‘Persist (ReaderT r m)’
--}
-{-# LANGUAGE UndecidableInstances #-}
-{-  • The constraint ‘Has (Persistence m) r’
-        is no smaller than the instance head ‘Persist (ReaderT r m)’
-      (Use UndecidableInstances to permit this)
-    • In the instance declaration for ‘Persist (ReaderT r m)’
--}
-
 {-# LANGUAGE
-OverloadedLabels,
-DerivingStrategies,
-RecordWildCards,
-MultiParamTypeClasses,
-DeriveGeneric,
 OverloadedStrings
 #-}
 
-{-# LANGUAGE FlexibleInstances #-}
-{-  • Illegal instance declaration for ‘Persist' m’
-        (All instance types must be of the form (T a1 ... an)
-         where a1 ... an are *distinct type variables*,
-         and each type variable appears at most once in the instance head.
-         Use FlexibleInstances if you want to disable this.)
-    • In the instance declaration for ‘Persist' m’
--}
-{-# LANGUAGE RecordWildCards #-}
-{-      Illegal `..' in record pattern
-47 |     (\UserRequest{..} -> Right (UserName username, Password password))
-   |       ^^^^^^^^^^^^^^^
--}
-{-# LANGUAGE ViewPatterns #-}
-{-    Illegal view pattern:  matches "/user" -> Just []
-    Use ViewPatterns to enable view patterns
--}
 module Main
   ( main
   ) where
@@ -45,26 +10,30 @@ module Main
 import Prelude
 import Control.Lens ((^.))
 import Control.Monad.Reader (runReaderT)
-import Data.Aeson
-import Data.Functor ((<&>))
-import Data.Has (Has(..))
+-- import Data.Aeson (eitherDecode)
+-- import Data.Functor ((<&>))
+-- import Data.Has (Has(..))
 import Data.Text (pack, unpack)
-import Data.Text.Lazy (fromStrict)
-import Data.Text.Lazy.Encoding (encodeUtf8)
-import GHC.Generics (Generic)
-import Data.Generics.Labels ()
-
--- Imports from our simplified web framework
+-- import Data.Text.Lazy (fromStrict)
+-- import Data.Text.Lazy.Encoding (encodeUtf8)
+-- import GHC.Generics (Generic)
+-- import Data.Generics.Labels ()
+--
+-- -- Imports from our simplified web framework
 import Web.SimpleHttp (matches, run)
-import Web.SimpleHttp.Types (Request(..), Response(..), MethodAndPath(..))
-import Web.SimpleHttp.Types (RequestBody, Error(..))
-import Web.SimpleHttp.Class (toResponseFrom)
-
--- Domain types and interfaces:
+-- import Web.SimpleHttp.Types (Request(..), Response(..), MethodAndPath(..))
+-- import Web.SimpleHttp.Types (RequestBody, Error(..))
+-- import Web.SimpleHttp.Class (toResponseFrom)
+--
+-- -- Domain types and interfaces:
 import Types (User(..), UserName(..), UserId(..), Password(..), Deletion(..))
-import Types (UserRequest(..))
+-- import Types (UserRequest(..))
 import Persist (Persist(..), Persistence(..))
 import Log (Log(..), Logger(..))
+
+import API
+import Develop
+
 
 main :: IO ()
 main = run 8080 $ \req -> runReaderT (api req) app
@@ -80,52 +49,62 @@ main = run 8080 $ \req -> runReaderT (api req) app
       , logger = Logger (putStrLn . unpack)
       }
 
-api ::
-     Log m
-  => Persist m
-  => Request -> m Response
-api request =
-  case methodAndPath request of
-    POST (matches "/user" -> Just []) ->
-      createNewUser (request ^. #body) <&> toResponseFrom
-    DELETE (matches "/user/:userId" -> Just [userId]) ->
-      deleteUser (UserId userId) <&> toResponseFrom
-    _ ->
-      pure NoResponse
-
-createNewUser ::
-     Persist m
-  => Log m
-  => RequestBody -> m (Either Error User)
-createNewUser body =
-  case bodyToUser body of
-    Left err ->
-      Left err <$ logLn ("Couldn't convert " <> body <> "to user and pass")
-    Right (user, pass) -> do
-      logLn $ "Going to create " <> unUserName user
-      userId <- persistUser user pass
-      -- Create a response from the persisted argument:
-      pure . Right $ User { userName = user, userId = userId }
-
-bodyToUser :: RequestBody -> Either Error (UserName, Password)
-bodyToUser =
-  either
-    (Left . BadRequest . pack)
-    (\UserRequest{..} -> Right (UserName username, Password password))
-    . eitherDecode
-    . encodeUtf8
-    . fromStrict
-
-data Application m = Application
-  { persistence :: Persistence m
-  , logger :: Logger m
-  }
-  deriving stock (Generic)
-
-instance Has (Logger m) (Application m) where
-  getter = logger
-  modifier f a = a { logger = f . logger $ a }
-
-instance Has (Persistence m) (Application m) where
-  getter = persistence
-  modifier f a = a { persistence = f . persistence $ a }
+-- -- | The API function, parametrized with the interfaces we defined
+-- api ::
+--      Log m
+--   => Persist m
+--   => Request -> m Response
+-- api request =
+--   case methodAndPath request of
+--     POST (matches "/user" -> Just []) ->
+--       createNewUser (request ^. #body) <&> toResponseFrom
+--     DELETE (matches "/user/:userId" -> Just [userId]) ->
+--       deleteUser (UserId userId) <&> toResponseFrom
+--     _ ->
+--       pure NoResponse
+--
+--
+--
+--
+-- -- | Create New User, WITH LOGGING (The signature is different.)
+-- createNewUser :: Persist m => Log m
+--                            => RequestBody -> m (Either Error User)
+-- createNewUser body =
+--   case bodyToUser body of
+--     Left err ->
+--       Left err <$ logLn ("Couldn't convert " <> body <> "to user and pass")
+--     Right (user, pass) -> do
+--       logLn $ "Going to create " <> unUserName user
+--       userId <- persistUser user pass
+--       -- Create a response from the persisted argument:
+--       pure . Right $ User { userName = user, userId = userId }
+-- -- We don't have to pass the Application to this function
+--
+-- bodyToUser :: RequestBody -> Either Error (UserName, Password)
+-- bodyToUser =
+--   either
+--     (Left . BadRequest . pack)
+--     (\UserRequest{..} -> Right (UserName username, Password password))
+--     . eitherDecode
+--     . encodeUtf8
+--     . fromStrict
+--
+-- -- | Data type containing grouping of similar functions, for parametrizing
+-- -- The "Handle" pattern.
+-- data Application m = Application
+--   { persistence :: Persistence m  -- Persistence is another such grouping
+--   , logger :: Logger m
+--   }
+--   deriving stock (Generic)
+-- -- The IO has been abstracted out to just "m"
+-- -- We can choose which monad to evaluate our program in.  We can then limit the effects of the monad.
+-- -- We could run these as pure functions by using the Identity monad
+--
+--
+-- instance Has (Logger m) (Application m) where
+--   getter = logger
+--   modifier f a = a { logger = f . logger $ a }
+--
+-- instance Has (Persistence m) (Application m) where
+--   getter = persistence
+--   modifier f a = a { persistence = f . persistence $ a }
